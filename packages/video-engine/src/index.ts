@@ -1,0 +1,6 @@
+export { ShipReelRoot } from './Root'
+export { ReelComposition } from './compositions/ReelComposition'
+export { HookIntro } from './components/HookIntro'
+export { CaptionOverlay } from './components/CaptionOverlay'
+export { ZoomLayer } from './components/ZoomLayer'
+export { useTimeline } from './utils/useTimeline'

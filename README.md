@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShipReel
 
-## Getting Started
+Turn product screen recordings into polished 9:16 launch reels using AI.
 
-First, run the development server:
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+npm install
+
+# Terminal 1 — Backend (Express on :4000)
+npm run dev:server
+
+# Terminal 2 — Frontend (Next.js on :3000)
+npm run dev:web
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) → Upload a screen recording and changelog → Watch the pipeline generate your reel.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Tool | Required? | For |
+|------|-----------|-----|
+| Node.js 22+ | ✅ Yes | Runtime |
+| FFmpeg | ⚠️ Recommended | Audio extraction, scene detection, metadata (`winget install ffmpeg`) |
+| Chrome | ⚠️ Recommended | Remotion rendering (auto-downloaded by Puppeteer) |
+| OpenRouter API key | ⚠️ Recommended | AI hook + scene plan generation ([openrouter.ai/keys](https://openrouter.ai/keys)) |
+| Whisper | ❌ Optional | Real transcription (`pip install openai-whisper`) |
 
-## Learn More
+Without FFmpeg/Whisper/OpenRouter, the pipeline runs with **mock data** — you can still test the full UI flow.
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+shipreel/
+├── apps/
+│   ├── web/              # Next.js 16 App Router (port 3000)
+│   │   ├── app/          # Pages: /, /upload, /dashboard, /projects/[id]
+│   │   ├── components/   # CaptionEditor, ProcessingStatus
+│   │   └── lib/          # API client
+│   └── server/           # Express.js API (port 4000)
+│       ├── src/
+│       │   ├── routes/   # upload, projects, render
+│       │   └── services/ # pipeline, ffmpeg, transcription, renderer
+│       ├── uploads/      # Uploaded videos
+│       └── output/       # Rendered MP4s
+├── packages/
+│   ├── shared-types/     # TypeScript types (Scene, ScenePlan, Project, etc.)
+│   ├── ai-pipeline/      # scene-plan, hook-generator, scene-detection
+│   └── video-engine/     # Remotion compositions (ReelComposition, HookIntro, etc.)
+└── .opencode/rules/      # Architecture documentation
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Commands
 
-## Deploy on Vercel
+| Command | Description |
+|---------|-------------|
+| `npm run dev:web` | Start Next.js frontend |
+| `npm run dev:server` | Start Express backend |
+| `npm run build` | Build shared-types + web app |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## API Endpoints
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | Server health check |
+| POST | `/api/projects` | Create project |
+| GET | `/api/projects` | List all projects |
+| GET | `/api/projects/:id` | Get project by ID |
+| PATCH | `/api/projects/:id` | Update project |
+| POST | `/api/upload/screen-recording` | Upload video + start pipeline |
+| POST | `/api/upload/inspiration-video` | Upload reference video |
+| POST | `/api/render/start` | Start render job |
+| GET | `/api/render/progress/:id` | Render progress |
+| GET | `/uploads/:file` | Served uploaded videos |
+| GET | `/output/:file` | Served rendered MP4s |
+
+## Configuration
+
+Copy `.env.example` → `apps/server/.env`:
+
+```env
+PORT=4000
+OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+Get a free OpenRouter key at [openrouter.ai/keys](https://openrouter.ai/keys).

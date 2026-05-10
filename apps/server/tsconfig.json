@@ -3,19 +3,19 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "declaration": true
   },
+  "include": ["src"],
   "references": [
-    { "path": "apps/web" },
-    { "path": "apps/server" },
-    { "path": "packages/shared-types" },
-    { "path": "packages/ai-pipeline" },
-    { "path": "packages/video-engine" }
-  ],
-  "files": []
+    { "path": "../../packages/shared-types" },
+    { "path": "../../packages/ai-pipeline" }
+  ]
 }

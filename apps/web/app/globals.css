@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-shipreel-50: #f0f9ff;
+  --color-shipreel-100: #e0f2fe;
+  --color-shipreel-200: #bae6fd;
+  --color-shipreel-300: #7dd3fc;
+  --color-shipreel-400: #38bdf8;
+  --color-shipreel-500: #0ea5e9;
+  --color-shipreel-600: #0284c7;
+  --color-shipreel-700: #0369a1;
+  --color-shipreel-800: #075985;
+  --color-shipreel-900: #0c4a6e;
+}
+
+body {
+  @apply bg-slate-950 text-white antialiased;
+}

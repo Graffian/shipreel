@@ -1,0 +1,28 @@
+{
+  "name": "@shipreel/server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.459",
+    "@remotion/renderer": "^4.0.459",
+    "@shipreel/ai-pipeline": "*",
+    "@shipreel/shared-types": "*",
+    "cors": "^2.8",
+    "dotenv": "^17.4.2",
+    "express": "^4.21",
+    "multer": "^1.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2",
+    "@types/express": "^5",
+    "@types/multer": "^1",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}
