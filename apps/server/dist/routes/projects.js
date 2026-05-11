@@ -1,9 +1,13 @@
-import { randomUUID } from 'node:crypto';
-import { Router } from 'express';
-export const projectRouter = Router();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.projectRouter = void 0;
+exports.createProject = createProject;
+const node_crypto_1 = require("node:crypto");
+const express_1 = require("express");
+exports.projectRouter = (0, express_1.Router)();
 const projects = new Map();
-export function createProject(data) {
-    const id = randomUUID();
+function createProject(data) {
+    const id = (0, node_crypto_1.randomUUID)();
     const project = {
         id,
         title: data.title || 'Untitled Project',
@@ -17,7 +21,7 @@ export function createProject(data) {
     projects.set(id, project);
     return project;
 }
-projectRouter.post('/', (req, res) => {
+exports.projectRouter.post('/', (req, res) => {
     const { title, changelog, screenRecordingUrl, inspirationVideoUrl } = req.body;
     const project = createProject({
         title,
@@ -27,11 +31,11 @@ projectRouter.post('/', (req, res) => {
     });
     res.status(201).json(project);
 });
-projectRouter.get('/', (_req, res) => {
+exports.projectRouter.get('/', (_req, res) => {
     const list = Array.from(projects.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     res.json(list);
 });
-projectRouter.get('/:id', (req, res) => {
+exports.projectRouter.get('/:id', (req, res) => {
     const project = projects.get(req.params.id);
     if (!project) {
         res.status(404).json({ error: 'Project not found' });
@@ -39,7 +43,7 @@ projectRouter.get('/:id', (req, res) => {
     }
     res.json(project);
 });
-projectRouter.patch('/:id', (req, res) => {
+exports.projectRouter.patch('/:id', (req, res) => {
     const project = projects.get(req.params.id);
     if (!project) {
         res.status(404).json({ error: 'Project not found' });

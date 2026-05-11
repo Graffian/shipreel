@@ -58,6 +58,10 @@ export async function renderReel(
     codec: 'h264',
     outputLocation: outputPath,
     inputProps,
+    chromiumOptions: {
+      enableMultiProcessOnLinux: false,
+      gl: 'swangle',
+    },
   })
 
   console.log(`[renderer] Done: ${outputPath}`)

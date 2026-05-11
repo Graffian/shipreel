@@ -1,10 +1,20 @@
-import { execSync } from 'child_process';
-import path from 'path';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CMD_TIMEOUT = void 0;
+exports.extractAudio = extractAudio;
+exports.getVideoMetadata = getVideoMetadata;
+exports.detectScenes = detectScenes;
+const child_process_1 = require("child_process");
+const path_1 = __importDefault(require("path"));
 const CMD_TIMEOUT = 10_000;
-export function extractAudio(videoPath) {
+exports.CMD_TIMEOUT = CMD_TIMEOUT;
+function extractAudio(videoPath) {
     try {
-        const audioPath = videoPath.replace(path.extname(videoPath), '.mp3');
-        execSync(`ffmpeg -i "${videoPath}" -vn -acodec libmp3lame -q:a 2 "${audioPath}" -y`, { stdio: 'pipe', timeout: CMD_TIMEOUT });
+        const audioPath = videoPath.replace(path_1.default.extname(videoPath), '.mp3');
+        (0, child_process_1.execSync)(`ffmpeg -i "${videoPath}" -vn -acodec libmp3lame -q:a 2 "${audioPath}" -y`, { stdio: 'pipe', timeout: CMD_TIMEOUT });
         return audioPath;
     }
     catch (err) {
@@ -12,10 +22,10 @@ export function extractAudio(videoPath) {
         return null;
     }
 }
-export function getVideoMetadata(videoPath) {
+function getVideoMetadata(videoPath) {
     // Primary: ffprobe
     try {
-        const output = execSync(`ffprobe -v error -show_entries format=duration:stream=avg_frame_rate,width,height -of json "${videoPath}"`, { stdio: 'pipe', timeout: CMD_TIMEOUT }).toString();
+        const output = (0, child_process_1.execSync)(`ffprobe -v error -show_entries format=duration:stream=avg_frame_rate,width,height -of json "${videoPath}"`, { stdio: 'pipe', timeout: CMD_TIMEOUT }).toString();
         const data = JSON.parse(output);
         const stream = data.streams?.[0] || {};
         const fpsParts = (stream.avg_frame_rate || '30/1').split('/');
@@ -32,7 +42,7 @@ export function getVideoMetadata(videoPath) {
     }
     // Fallback: ffmpeg -i (works with just ffmpeg.exe, no ffprobe needed)
     try {
-        const output = execSync(`ffmpeg -i "${videoPath}" 2>&1`, { stdio: 'pipe', timeout: CMD_TIMEOUT }).toString();
+        const output = (0, child_process_1.execSync)(`ffmpeg -i "${videoPath}" 2>&1`, { stdio: 'pipe', timeout: CMD_TIMEOUT }).toString();
         const durationMatch = output.match(/Duration:\s*(\d+):(\d+):(\d+)\.(\d+)/);
         const duration = durationMatch
             ? Number(durationMatch[1]) * 3600 +
@@ -63,10 +73,10 @@ export function getVideoMetadata(videoPath) {
         return { duration: 30, fps: 30, width: 1920, height: 1080 };
     }
 }
-export function detectScenes(videoPath) {
+function detectScenes(videoPath) {
     const scenes = [];
     try {
-        const output = execSync(`ffmpeg -i "${videoPath}" -filter:v "select='gt(scene,0.4)',showinfo" -f null - 2>&1`, { stdio: 'pipe', maxBuffer: 10 * 1024 * 1024, timeout: CMD_TIMEOUT }).toString();
+        const output = (0, child_process_1.execSync)(`ffmpeg -i "${videoPath}" -filter:v "select='gt(scene,0.4)',showinfo" -f null - 2>&1`, { stdio: 'pipe', maxBuffer: 10 * 1024 * 1024, timeout: CMD_TIMEOUT }).toString();
         const regex = /pts_time:\s*([\d.]+)/g;
         const times = [];
         let match;
@@ -87,4 +97,3 @@ export function detectScenes(videoPath) {
     }
     return Promise.resolve({ scenes });
 }
-export { CMD_TIMEOUT };

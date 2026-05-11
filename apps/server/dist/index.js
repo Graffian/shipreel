@@ -1,22 +1,27 @@
-import dotenv from 'dotenv';
-import path from 'path';
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-import express from 'express';
-import cors from 'cors';
-import { uploadRouter } from './routes/upload';
-import { projectRouter } from './routes/projects';
-import { renderRouter } from './routes/render';
-const app = express();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../.env') });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const upload_1 = require("./routes/upload");
+const projects_1 = require("./routes/projects");
+const render_1 = require("./routes/render");
+const app = (0, express_1.default)();
 const PORT = process.env.PORT || 4000;
-app.use(cors());
-app.use(express.json());
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
 // Serve uploaded videos for Remotion's Chrome to access
-app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+app.use('/uploads', express_1.default.static(path_1.default.resolve(__dirname, '../uploads')));
 // Serve rendered output videos
-app.use('/output', express.static(path.resolve(__dirname, '../output')));
-app.use('/api/upload', uploadRouter);
-app.use('/api/projects', projectRouter);
-app.use('/api/render', renderRouter);
+app.use('/output', express_1.default.static(path_1.default.resolve(__dirname, '../output')));
+app.use('/api/upload', upload_1.uploadRouter);
+app.use('/api/projects', projects_1.projectRouter);
+app.use('/api/render', render_1.renderRouter);
 app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', service: 'shipreel-server' });
 });

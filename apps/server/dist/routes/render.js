@@ -1,7 +1,10 @@
-import { Router } from 'express';
-export const renderRouter = Router();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.renderRouter = void 0;
+const express_1 = require("express");
+exports.renderRouter = (0, express_1.Router)();
 const renderJobs = new Map();
-renderRouter.post('/start', async (req, res) => {
+exports.renderRouter.post('/start', async (req, res) => {
     const renderReq = req.body;
     if (!renderReq.projectId || !renderReq.scenePlan) {
         res.status(400).json({ error: 'Missing projectId or scenePlan' });
@@ -14,7 +17,7 @@ renderRouter.post('/start', async (req, res) => {
     });
     res.json({ message: 'Render started', projectId: renderReq.projectId });
 });
-renderRouter.get('/progress/:projectId', (req, res) => {
+exports.renderRouter.get('/progress/:projectId', (req, res) => {
     const progress = renderJobs.get(req.params.projectId);
     if (!progress) {
         res.status(404).json({ error: 'No render job found' });

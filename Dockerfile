@@ -31,6 +31,9 @@ RUN mkdir -p apps/server/uploads apps/server/output
 ENV NEXT_PUBLIC_API_URL=/api
 RUN npm run build
 
+# Build server (CommonJS output for Node.js native)
+RUN npm run build -w apps/server
+
 EXPOSE 10000
 
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
