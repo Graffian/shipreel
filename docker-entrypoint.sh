@@ -9,11 +9,11 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 echo "Starting Express on port 4001..."
-PORT=4001 node apps/server/dist/index.js &
+PORT=4001 npx tsx apps/server/src/index.ts &
 EXPRESS_PID=$!
 
 sleep 2
 
-echo "Starting Next.js on port ${PORT:-10000}..."
+echo "Starting Next.js on port 4000..."
 cd apps/web
-npx next start --port ${PORT:-10000}
+npx next start --port 4000
