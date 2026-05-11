@@ -31,6 +31,9 @@ RUN mkdir -p apps/server/uploads apps/server/output
 ENV NEXT_PUBLIC_API_URL=/api
 RUN npm run build
 
+# Build ai-pipeline (used at runtime by server)
+RUN npm run build -w packages/ai-pipeline
+
 # Build server (CommonJS output for Node.js native)
 RUN npm run build -w apps/server
 
