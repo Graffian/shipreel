@@ -1,5 +1,19 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
 
+async function retryFetch(input: RequestInfo, init?: RequestInit, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(input, init)
+      return res
+    } catch (err) {
+      if (i === retries - 1) throw err
+      console.warn(`[api] fetch failed, retrying (${i + 1}/${retries})...`, err)
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)))
+    }
+  }
+  throw new Error('Unreachable')
+}
+
 export const api = {
   async createProject(data: {
     title: string
@@ -42,7 +56,7 @@ export const api = {
     form.append('file', file)
     if (title) form.append('title', title)
     if (changelog) form.append('changelog', changelog)
-    const res = await fetch(`${API_BASE}/upload/screen-recording`, {
+    const res = await retryFetch(`${API_BASE}/upload/screen-recording`, {
       method: 'POST',
       body: form,
     })
