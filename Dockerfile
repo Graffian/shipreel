@@ -42,7 +42,6 @@ EXPOSE 10000
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
-ENV API_UPSTREAM=http://localhost:4001
 ENV NODE_ENV=production
 
 CMD ["bash", "/app/docker-entrypoint.sh"]
