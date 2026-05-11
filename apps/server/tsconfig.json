@@ -13,9 +13,5 @@
     "isolatedModules": true,
     "declaration": true
   },
-  "include": ["src"],
-  "references": [
-    { "path": "../../packages/shared-types" },
-    { "path": "../../packages/ai-pipeline" }
-  ]
+  "include": ["src"]
 }
