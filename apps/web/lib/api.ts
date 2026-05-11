@@ -60,7 +60,10 @@ export const api = {
       method: 'POST',
       body: form,
     })
-    if (!res.ok) throw new Error('Upload failed')
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || 'Upload failed')
+    }
     return res.json()
   },
 }
