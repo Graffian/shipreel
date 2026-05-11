@@ -237,3 +237,49 @@ Replace the `Map<string, Project>` in `projects.ts` with Supabase queries. The `
 
 ### Add a new Remotion effect
 Create a new component in `packages/video-engine/src/components/`, add it to `ReelComposition.tsx`, and add the control fields to the `Scene` type.
+
+## Production Deployment (Render free tier)
+
+### Architecture in Docker
+
+```
+Browser → Render → :10000 → Next.js (App Router, port 10000)
+  ├── /api/*         → rewrite → Express (port 4001, internal)
+  ├── /uploads/*     → rewrite → Express
+  ├── /output/*      → rewrite → Express
+  └── /*             → handled by Next.js
+```
+
+Both servers run in a single Docker container. Express serves uploaded videos to Remotion's `OffthreadVideo` internally.
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Node 22 + Chromium + FFmpeg, builds monorepo, starts both servers |
+| `docker-entrypoint.sh` | Starts Express (bg, :4001) then Next.js (fg, :10000) |
+| `.dockerignore` | Excludes node_modules, .next, dist, env files |
+
+### Port Strategy
+
+| Service | Dev | Docker |
+|---------|-----|--------|
+| Express | 4000 | 4001 |
+| Next.js | 3000 | Render's PORT (10000) |
+| Remotion video URL | `localhost:4000/uploads/...` | `localhost:4001/uploads/...` |
+
+`process.env.PORT` is set to `4001` when starting Express in Docker, so Remotion's `OffthreadVideo` correctly loads from `http://localhost:4001/uploads/...`.
+
+### Deploy steps
+
+1. Push to GitHub
+2. Render.com → New Web Service → Connect repo → Runtime: Docker
+3. Set `OPENROUTER_API_KEY` env var in Render dashboard
+4. Set health check path to `/api/health`
+5. Deploy
+
+### Caveats
+
+- **Free tier sleeps** after 15 min of inactivity — first request takes ~30s cold start
+- **512 MB RAM limit** — Chrome rendering may be tight for long videos
+- **In-memory storage** — projects are lost on container restart (MVP tradeoff)

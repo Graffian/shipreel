@@ -70,9 +70,7 @@ export default function ProjectPage() {
     )
   }
 
-  const videoUrl = project.renderedVideoUrl
-    ? `http://localhost:4000${project.renderedVideoUrl}`
-    : null
+  const videoUrl = project.renderedVideoUrl ?? null
 
   return (
     <div>

@@ -85,3 +85,16 @@ OPENROUTER_API_KEY=sk-or-v1-...
 ```
 
 Get a free OpenRouter key at [openrouter.ai/keys](https://openrouter.ai/keys).
+
+## Deploy to Render (free tier)
+
+1. Push the repo to GitHub
+2. Go to [render.com](https://render.com) → New Web Service → Connect your repo
+3. Settings:
+   - **Runtime**: Docker
+   - **Health Check Path**: `/api/health`
+   - **Env Var**: `OPENROUTER_API_KEY` — your key from [openrouter.ai/keys](https://openrouter.ai/keys)
+4. Deploy — first build takes ~5 minutes (installing Chrome + FFmpeg)
+5. Open the Render URL — upload a screen recording and the pipeline runs in the same container
+
+> **Cold starts:** The free tier sleeps after 15min of inactivity. First request after sleep takes ~30s to wake up (Chrome starts on demand during rendering).
