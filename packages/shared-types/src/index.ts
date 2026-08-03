@@ -16,6 +16,8 @@ export interface Scene {
   click?: boolean
   /** Transition type from previous scene */
   transition?: 'fade' | 'slide' | 'cut' | 'zoom'
+  /** AI description of what's happening visually in this scene */
+  sceneDescription?: string
 }
 
 export interface ScenePlan {

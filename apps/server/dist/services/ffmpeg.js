@@ -7,6 +7,8 @@ exports.CMD_TIMEOUT = void 0;
 exports.extractAudio = extractAudio;
 exports.getVideoMetadata = getVideoMetadata;
 exports.detectScenes = detectScenes;
+exports.extractSceneFrames = extractSceneFrames;
+exports.addSoundEffects = addSoundEffects;
 const child_process_1 = require("child_process");
 const path_1 = __importDefault(require("path"));
 const CMD_TIMEOUT = 10_000;
@@ -96,4 +98,64 @@ function detectScenes(videoPath) {
         scenes.push({ start: 0, end: 4, type: 'scene_change' }, { start: 4, end: 8, type: 'scene_change' }, { start: 8, end: 12, type: 'scene_change' });
     }
     return Promise.resolve({ scenes });
+}
+function extractSceneFrames(videoPath, scenes) {
+    const dir = path_1.default.dirname(videoPath);
+    const frames = [];
+    for (let i = 0; i < scenes.length; i++) {
+        const mid = (scenes[i].start + scenes[i].end) / 2;
+        const out = path_1.default.join(dir, `frame-${i}.jpg`);
+        try {
+            (0, child_process_1.execSync)(`ffmpeg -ss ${mid} -i "${videoPath}" -vframes 1 -q:v 2 "${out}" -y`, { stdio: 'pipe', timeout: CMD_TIMEOUT });
+            frames.push({ sceneIndex: i, filePath: out });
+        }
+        catch {
+            console.warn(`[ffmpeg] Failed to extract frame at ${mid}s`);
+        }
+    }
+    return frames;
+}
+function addSoundEffects(videoPath, scenes, outputPath) {
+    try {
+        const dir = path_1.default.dirname(outputPath);
+        const baseName = path_1.default.basename(outputPath, path_1.default.extname(outputPath));
+        // Build an audio filter complex that generates click + transition sounds
+        // click: 50ms sine wave at 800Hz
+        // transition: 100ms white noise burst
+        const filters = [];
+        let filterIdx = 0;
+        const inputs = [];
+        for (const scene of scenes) {
+            const delayMs = Math.round(scene.start * 1000);
+            // Click sound
+            if (scene.click) {
+                const dur = 0.05;
+                const freq = 800;
+                const vol = 0.3;
+                filters.push(`aevalsrc=exprs=sin(2*PI*${freq}*t)*${vol}:d=${dur}:s=44100 [click${filterIdx}]`);
+                inputs.push(`[click${filterIdx}]adelay=${delayMs}|${delayMs}[a${filterIdx}]`);
+                filterIdx++;
+            }
+            // Transition swoosh
+            if (scene.transition && scene.transition !== 'cut') {
+                const dur = 0.15;
+                const vol = 0.15;
+                filters.push(`aevalsrc=exprs=random(t)*${vol}:d=${dur}:s=44100 [swoosh${filterIdx}]`);
+                inputs.push(`[swoosh${filterIdx}]adelay=${delayMs}|${delayMs}[a${filterIdx}]`);
+                filterIdx++;
+            }
+        }
+        if (inputs.length === 0)
+            return null;
+        // Mix all generated sounds into one track
+        const mixInputs = inputs.map((_, i) => `[a${i}]`).join('');
+        const filterComplex = [...filters, ...inputs, `${mixInputs}amix=inputs=${inputs.length}:duration=first [audio]`].join('; ');
+        const sfxPath = path_1.default.join(dir, `${baseName}-sfx.mp4`);
+        (0, child_process_1.execSync)(`ffmpeg -i "${videoPath}" -filter_complex "${filterComplex}" -map 0:v -map "[audio]" -c:v copy -c:a aac -b:a 128k "${sfxPath}" -y`, { stdio: 'pipe', timeout: 30000 });
+        return sfxPath;
+    }
+    catch (err) {
+        console.warn(`[ffmpeg] Sound effects failed: ${err instanceof Error ? err.message : err}`);
+        return null;
+    }
 }

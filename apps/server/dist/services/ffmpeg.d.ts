@@ -14,3 +14,15 @@ export declare function detectScenes(videoPath: string): Promise<{
     }>;
 }>;
 export { CMD_TIMEOUT };
+export declare function extractSceneFrames(videoPath: string, scenes: {
+    start: number;
+    end: number;
+}[]): {
+    sceneIndex: number;
+    filePath: string;
+}[];
+export declare function addSoundEffects(videoPath: string, scenes: {
+    start: number;
+    click?: boolean;
+    transition?: string;
+}[], outputPath: string): string | null;

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const EXPRESS_URL = process.env.EXPRESS_URL || 'http://localhost:4000'
+
 export async function POST(request: NextRequest) {
-  const expressUrl = 'http://localhost:4001/api/upload/screen-recording'
+  const expressUrl = `${EXPRESS_URL}/api/upload/screen-recording`
 
   if (!request.body) {
     return NextResponse.json({ error: 'No request body' }, { status: 400 })

@@ -43,5 +43,6 @@ COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
 ENV NODE_ENV=production
+ENV EXPRESS_URL=http://localhost:4001
 
 CMD ["bash", "/app/docker-entrypoint.sh"]

@@ -1,5 +1,5 @@
 import type { ScenePlan } from '@shipreel/shared-types'
-import type { ScenePlanInput } from './types'
+import type { ScenePlanInput, SceneDescription } from './types'
 import { generateHook } from './hook-generator'
 
 export async function generateScenePlan(
@@ -12,11 +12,25 @@ export async function generateScenePlan(
 
   const prompt = buildScenePlanPrompt(input, hook)
   const llmOutput = await queryLLM(prompt, hook)
-  return parseLLMResponse(llmOutput, hook)
+  const plan = parseLLMResponse(llmOutput, hook)
+
+  // Overlay vision-based scene descriptions onto the generated scenes
+  if (input.sceneDescriptions) {
+    for (const sd of input.sceneDescriptions) {
+      const scene = plan.scenes[sd.sceneIndex]
+      if (scene) {
+        scene.sceneDescription = sd.description
+        if (sd.attentionX !== undefined) scene.cursorX = sd.attentionX
+        if (sd.attentionY !== undefined) scene.cursorY = sd.attentionY
+      }
+    }
+  }
+
+  return plan
 }
 
 function buildScenePlanPrompt(input: ScenePlanInput, hook: string): string {
-  return `You are a video editing AI. Given a transcription and scene changes, generate a JSON scene plan.
+  let prompt = `You are a video editing AI. Given a transcription and scene changes, generate a JSON scene plan.
 
 HOOK: "${hook}"
 
@@ -27,15 +41,24 @@ ${input.detectedScenes
   .map((s) => `  ${s.start}s-${s.end}s: ${s.type}`)
   .join('\n')}
 
-${input.changelog ? `CHANGELOG/FEATURES:\n${input.changelog}` : ''}
+${input.changelog ? `CHANGELOG/FEATURES:\n${input.changelog}` : ''}`
 
-Generate a ScenePlan JSON with:
+  if (input.sceneDescriptions && input.sceneDescriptions.length > 0) {
+    prompt += `\n\nVISUAL SCENE DESCRIPTIONS (from video analysis):
+${input.sceneDescriptions
+  .map((sd) => `  Scene ${sd.sceneIndex} (${sd.start}s-${sd.end}s): ${sd.description}`)
+  .join('\n')}`
+  }
+
+  prompt += `\n\nGenerate a ScenePlan JSON with:
 - "hook": the viral hook text
 - "scenes": array of { start, end, caption, zoom (bool), cursorX?, cursorY?, click?, transition? }
 - "totalDuration": total seconds
 - "pacing": brief description
 
 Output ONLY valid JSON, no markdown, no explanation.`
+
+  return prompt
 }
 
 async function queryLLM(prompt: string, hook: string): Promise<string> {

@@ -12,6 +12,6 @@ echo "Starting Express on port 4001..."
 PORT=4001 node apps/server/dist/index.js &
 EXPRESS_PID=$!
 
-echo "Starting Next.js on port 4000..."
+echo "Starting Next.js on port ${PORT:-4000}..."
 cd apps/web
-npx next start --port 4000
+npx next start --port ${PORT:-4000}

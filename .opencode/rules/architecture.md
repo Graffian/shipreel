@@ -270,6 +270,8 @@ Both servers run in a single Docker container. Express serves uploaded videos to
 
 `process.env.PORT` is set to `4001` when starting Express in Docker, so Remotion's `OffthreadVideo` correctly loads from `http://localhost:4001/uploads/...`.
 
+The Dockerfile sets `EXPRESS_URL=http://localhost:4001`. Both `next.config.ts` rewrites and the upload Route Handler read `EXPRESS_URL` (default `http://localhost:4000` for dev) to reach Express. In dev: web :3000 → Express :4000 (no env needed).
+
 ### Deploy steps
 
 1. Push to GitHub

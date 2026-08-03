@@ -9,6 +9,21 @@ export interface ScenePlanInput {
     }>;
     changelog?: string;
     outputDuration: number;
+    /** Per-scene visual descriptions from vision model */
+    sceneDescriptions?: SceneDescription[];
+}
+export interface SceneDescription {
+    sceneIndex: number;
+    start: number;
+    end: number;
+    description: string;
+    /** Detected UI elements or features visible */
+    visibleFeatures: string[];
+    /** Where the cursor/action is focused (normalized 0-1) */
+    attentionX?: number;
+    attentionY?: number;
+    /** Whether this scene contains an important UI interaction */
+    hasInteraction: boolean;
 }
 export interface HookGenerationInput {
     transcription: string;

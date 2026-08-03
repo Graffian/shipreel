@@ -23,6 +23,14 @@ async function runPipeline(project, videoPath, onStatus) {
         onStatus('transcribing');
         const sceneDetection = await (0, ffmpeg_1.detectScenes)(videoPath);
         console.log(`[pipeline] Detected ${sceneDetection.scenes.length} scene events`);
+        // Video understanding — extract frames and analyze with vision model
+        onStatus('generating');
+        console.log(`[pipeline] Analyzing video scenes with vision model...`);
+        const sceneDescriptions = await (0, ai_pipeline_1.analyzeVideoScenes)(videoPath, sceneDetection.scenes);
+        if (sceneDescriptions.length > 0) {
+            console.log(`[pipeline] Got ${sceneDescriptions.length} scene descriptions`);
+            sceneDescriptions.forEach((sd) => console.log(`  Scene ${sd.sceneIndex}: ${sd.description.slice(0, 60)}...`));
+        }
         onStatus('generating');
         const hook = await (0, ai_pipeline_1.generateHook)({
             transcription: transcription.text,
@@ -36,8 +44,22 @@ async function runPipeline(project, videoPath, onStatus) {
             detectedScenes: sceneDetection.scenes,
             changelog: project.changelog,
             outputDuration: Math.min(metadata.duration, 60),
+            sceneDescriptions: sceneDescriptions.length > 0 ? sceneDescriptions : undefined,
         });
         scenePlan.hook = hook;
+        // Update scene descriptions on the plan from vision analysis
+        if (sceneDescriptions.length > 0) {
+            for (const sd of sceneDescriptions) {
+                const scene = scenePlan.scenes[sd.sceneIndex];
+                if (scene) {
+                    scene.sceneDescription = sd.description;
+                    if (sd.attentionX !== undefined)
+                        scene.cursorX ??= sd.attentionX;
+                    if (sd.attentionY !== undefined)
+                        scene.cursorY ??= sd.attentionY;
+                }
+            }
+        }
         onStatus('generating', { scenePlan, words: transcription.words });
         onStatus('rendering');
         const outputDir = path_1.default.resolve(__dirname, '../../output');
@@ -45,6 +67,13 @@ async function runPipeline(project, videoPath, onStatus) {
         const outputPath = path_1.default.join(outputDir, `${project.id}.mp4`);
         const screenRecordingUrl = `http://localhost:${process.env.PORT || 4000}/uploads/${path_1.default.basename(videoPath)}`;
         await (0, renderer_1.renderReel)(scenePlan, screenRecordingUrl, outputPath);
+        // Add sound effects — click sounds and transition swooshes
+        onStatus('rendering');
+        const sfxPath = (0, ffmpeg_1.addSoundEffects)(outputPath, scenePlan.scenes, outputPath);
+        if (sfxPath && sfxPath !== outputPath) {
+            (0, fs_1.unlinkSync)(outputPath);
+            (0, fs_1.renameSync)(sfxPath, outputPath);
+        }
         const renderedVideoUrl = `/output/${project.id}.mp4`;
         onStatus('complete', {
             scenePlan,

@@ -1,4 +1,5 @@
 export { generateScenePlan } from './scene-plan';
 export { generateHook } from './hook-generator';
 export { detectScenes } from './scene-detection';
-export type { ScenePlanInput, HookGenerationInput } from './types';
+export { analyzeVideoScenes } from './video-understanding';
+export type { ScenePlanInput, HookGenerationInput, SceneDescription } from './types';
