@@ -22,12 +22,21 @@ Open [http://localhost:3000](http://localhost:3000) → Upload a screen recordin
 | Tool | Required? | For |
 |------|-----------|-----|
 | Node.js 22+ | ✅ Yes | Runtime |
-| FFmpeg | ⚠️ Recommended | Audio extraction, scene detection, metadata (`winget install ffmpeg`) |
+| FFmpeg | ⚠️ Recommended | Audio extraction, scene detection, frame extraction, sound effects (`winget install ffmpeg`) |
 | Chrome | ⚠️ Recommended | Remotion rendering (auto-downloaded by Puppeteer) |
-| OpenRouter API key | ⚠️ Recommended | AI hook + scene plan generation ([openrouter.ai/keys](https://openrouter.ai/keys)) |
+| OpenRouter API key | ⚠️ Recommended | AI hook + scene plan + video understanding ([openrouter.ai/keys](https://openrouter.ai/keys)) |
 | Whisper | ❌ Optional | Real transcription (`pip install openai-whisper`) |
 
 Without FFmpeg/Whisper/OpenRouter, the pipeline runs with **mock data** — you can still test the full UI flow.
+
+## Pipeline
+
+1. **Transcribe** — extract audio with FFmpeg, transcribe (Whisper, or mock).
+2. **Detect scenes** — FFmpeg scene-change detection splits the recording into segments.
+3. **Video understanding** — extract a frame from each scene and analyze it with an OpenRouter vision model to know what's on screen and where the user's attention is.
+4. **Generate plan** — AI builds a `ScenePlan` (captions, zoom targets, transitions) from the transcript + scene descriptions.
+5. **Render** — Remotion renders the 9:16 reel (Hook intro + captions + auto-zoom).
+6. **Sound effects** — FFmpeg adds click sounds on interactive scenes and swooshes on transitions, then muxes them into the final MP4.
 
 ## Project Structure
 
@@ -46,7 +55,7 @@ shipreel/
 │       └── output/       # Rendered MP4s
 ├── packages/
 │   ├── shared-types/     # TypeScript types (Scene, ScenePlan, Project, etc.)
-│   ├── ai-pipeline/      # scene-plan, hook-generator, scene-detection
+│   ├── ai-pipeline/      # scene-plan, hook-generator, scene-detection, video-understanding
 │   └── video-engine/     # Remotion compositions (ReelComposition, HookIntro, etc.)
 └── .opencode/rules/      # Architecture documentation
 ```
@@ -58,6 +67,8 @@ shipreel/
 | `npm run dev:web` | Start Next.js frontend |
 | `npm run dev:server` | Start Express backend |
 | `npm run build` | Build shared-types + web app |
+| `npm run build -w packages/ai-pipeline` | Build ai-pipeline (needed before `dev:server` after ai-pipeline changes) |
+| `npm run build -w apps/server` | Build the Express server |
 
 ## API Endpoints
 
